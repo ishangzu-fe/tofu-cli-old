@@ -1,0 +1,10 @@
+#! /usr/bin/env node
+const program = require('commander');
+
+program.version(require('../package').version)
+      .usage('<command> [options]')
+      .command('init', '创建一个基于tofu的项目')
+      .command('server', '运行开发服务')
+      .command('build', '打包项目')
+      .command('update', '更新框架以及命令行工具至最新版本')
+      .parse(process.argv);

@@ -1,0 +1,26 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const ora = require('ora');
+const program = require('commander');
+const inquirer = require('inquirer');
+
+const checkAll = require('../lib/check-all');
+
+program
+    .option('-p, --port <port>', '初始化git')
+    .parse(process.argv);
+
+const launchServer = () => {
+    let port;
+    if (program.port) {
+        port = program.port;
+    }
+    require('../webpack/dev/server.js')(port);
+}
+
+const main = async () => {
+    checkAll(launchServer);
+}
+
+main();

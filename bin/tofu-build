@@ -1,0 +1,23 @@
+#!/usr/bin/env node
+
+const path = require('path');
+const ora = require('ora');
+const program = require('commander');
+const inquirer = require('inquirer');
+
+const checkAll = require('../lib/check-all');
+
+program
+    .option('--zip', '打包后压缩')
+    .option('--to [dist]', '打包后压缩并移动至指定位置（默认为桌面）')
+    .parse(process.argv);
+
+const build = async () => {
+    require('../webpack/build/build.js')(program.zip, program.to);
+}
+
+const main = () => {
+    checkAll(build);
+}
+
+main();

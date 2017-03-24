@@ -1,0 +1,158 @@
+#!/usr/bin/env node
+
+const program = require('commander');
+const chalk = require('chalk');
+const rm = require('rimraf');
+const log = require('../lib/log').log;
+const downloadFromGit = require('download-git-repo');
+const inquirer = require('inquirer');
+const ora = require('ora');
+const path = require('path');
+const fs = require('fs');
+const cp = require('child_process');
+const checkVersion = require('../lib/check-version');
+const writeIgnore = require('../lib/write-ignore.js');
+
+let config; // 存放用户输入的配置
+
+program
+    .option('-g, --git', '初始化git')
+    .parse(process.argv);
+
+/**
+ * 初始化git
+ */
+const initGit = () => {
+    cp.exec('git init', {
+        cwd: dist
+    }, (err, stdout, stderr) => {
+        console.log(`在${dist}初始化git项目成功！`)
+        cp.execSync(`git add remote origin ${config.gitPath}`);
+        cp.execSync(`git push -u origin master`);
+    })
+}
+
+/**
+ * 下载之后做的事情
+ * @param {String} dist 项目目录
+ */
+const afterDownload = async () => {
+    writeIgnore(config.pathName);
+    if (program.git) {
+        await initGit();
+    }
+
+    let i = 1;
+    log();
+    log('已完成项目的初始化:', 'green');
+    log();
+    log(`    ${i++}.在${config.pathName}新建了项目`, 'white');
+    if (program.git) {
+        log(`    ${i++}.在${config.pathName}初始化了git`, 'white');      
+    }
+    log();
+    log('接下来你需要：', 'white');
+    log();
+    log(`    1.cd ${config.name}`, 'white');
+    log('    2.npm install（或者 yarn install, cnpm install)', 'white');
+    log();
+    log('然后你可以：', 'white');
+    log();
+    log('    - tofu server                                     运行开发服务', 'white');
+    log('    - tofu build                                      打包项目', 'white');
+    log('    - tofu update                                     更新框架以及命令行工具至最新版本', 'white');
+    log();
+}
+
+/**
+ * 下载项目至指定文件
+ * @param {String} source git源
+ * @param {String} dist 项目目录
+ * @param {Boolean} clone 是否采用git clone来下载
+ */
+const download = (source, dist, clone) => {
+    const spinner = ora('downloading template');
+    spinner.start();
+
+    downloadFromGit(source, dist, { clone }, err => {
+        spinner.stop();
+
+        if (err) console.err(err);
+
+        afterDownload();
+    });
+}
+
+const initConfig = async () => {
+    let name = await inquirer.prompt({
+        name: 'name',
+        message: '请输入项目名',
+        validate (name) {
+            let regExp = /^[\u4E00-\u9FA5a-zA-Z0-9\-\_\$]+$/;
+            if (regExp.test(name)) {
+                return true;
+            } else {
+                return "请输入正确的项目名，只允许输入汉字，英文，数字，和符号（'_', '-', '$'）"
+            }
+        }
+    });
+
+    let template = await inquirer.prompt({
+        name: 'template',
+        message: '请选择新建的模板类型',
+        type: 'list',
+        default: 0,
+        choices: [
+            'PC'
+        ]
+    });
+
+    const dist = path.resolve(process.cwd(), name.name);
+    let pathName = await inquirer.prompt({
+        name: 'path',
+        message: `将会把项目新建在：${dist}，确定吗？`,
+        type: 'confirm'
+    }).then(res => {
+        if (res.path) {
+            return dist;
+        } else {
+            return inquirer.prompt({
+                name: 'path',
+                message: '请输入项目创建的地址（相对当前路径）：',
+                filter (input) {
+                    return require('path').resolve(process.cwd(), input);
+                }
+            })
+        }
+    })
+
+    let gitPath;
+    if (program.git) {
+        gitPath = await inquirer.prompt({
+            name: 'gitPath',
+            message: `请输入项目的git地址`,
+        })
+    }
+
+    return Object.assign({ pathName }, template, gitPath, name);
+}
+
+const init = async () => {
+    await checkVersion();
+    config = await initConfig();
+
+    // 如果存在文件夹，将会删除当前文件夹
+    rm(config.pathName, err => {
+        if (err) throw err;
+
+        switch (config.template) {
+            case 'PC':
+                download('ishangzu-fe/tofu-boilerplate', config.pathName, false);
+                break;
+            default:
+                break;
+        }
+    })
+}
+
+init();
