@@ -38,8 +38,8 @@ module.exports = (zip, to) => {
             ))
         })
 
-        if (zip || to) {
-            compress(zipPath, to);
-        }
+        // if (zip || to) {
+        //     compress(zipPath, to);
+        // }
     })
 }

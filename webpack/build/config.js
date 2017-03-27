@@ -4,7 +4,7 @@ const config = resolveCwd('./config.js')
 
 module.exports = {
     env: { NODE_ENV: '"production"' },
-    index: path.resolve(__dirname, '../dist/index.html'),
+    index: resolveCwd('./dist/index.html'),
     assetsRoot: resolveCwd('./dist'),
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',

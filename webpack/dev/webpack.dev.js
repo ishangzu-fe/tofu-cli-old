@@ -5,9 +5,11 @@ const baseWebpackConfig = require('../webpack.base')(config);
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin');
 
+const hotReload = require('path').resolve(__dirname, './hot-reload')
+
 // 添加热重载
 Object.keys(baseWebpackConfig.entry).forEach((name) => {
-    baseWebpackConfig.entry[name] = ['webpack-hot-middleware/client'].concat(baseWebpackConfig.entry[name])
+    baseWebpackConfig.entry[name] = [hotReload].concat(baseWebpackConfig.entry[name])
 })
 
 module.exports = merge(baseWebpackConfig, {

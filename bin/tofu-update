@@ -1,8 +1,12 @@
 #! /usr/bin/env node
 
+// require('../lib/check-version')();
+
 const program = require('commander');
 const exec = require('child_process').exec;
 const config = require('../config');
+const log = require('../lib/log').log;
+const ora = require('ora');
 
 program
     .option('--cnpm', '使用cnpm来代替npm')
@@ -10,32 +14,40 @@ program
     .option('--npm', '使用npm来代替设置的工具')
     .parse(process.argv);
 
-// require('../lib/check-version')();
+const execParallel = (commandArr) => {
+    const spinner_1 = new ora('正在升级i-tofu中...');
+    const spinner_2 = new ora('正在升级tofu-cli中...');
+    spinner_1.start();
+    log();
+    spinner_2.start();
 
-let child;
-if (program.cnpm) {
-    child = exec('cnpm install itofu@latest&cnpm install -g tofu-cli@latest');
-} else if (program.yarn) {
-    child = exec('yarn add itofu@latest&yarn global add tofu-cli@latest');
-} else if (program.npm) {
-    child = exec('npm install itofu@latest&npm install -g tofu-cli@latest');
-} else {
-    child = exec(config.tool + ' install itofu@latest&' + config.tool + ' install -g tofu-cli@latest', (error, stdout, stderr) => {
+    exec(commandArr[0], (error, stdout, stderr) => {
+        spinner_1.stop();        
         if (error) {
             console.error(`exec error: ${error}`);
             return;
+        } else {
+            log('升级i-tofu成功！', 'green');
+            log();
         }
-        console.log(`stdout: ${stdout}`);
-        console.log(`stderr: ${stderr}`);
     });
+    exec(commandArr[1], (error, stdout, stderr) => {
+        spinner_2.stop();
+        if (error) {
+            console.error(`exec error: ${error}`);
+            return;
+        } else {
+            log('升级tofu-cli成功！', 'green');
+        }
+    })
 }
 
-child.on('error', (err) => {
-    throw error;
-});
-
-child.on('close', (code, signal) => {
-    if (code === 0) {
-        console.log('成功更新了tofu和tofu-cli');
-    }
-});
+if (program.cnpm) {
+    execParallel(['cnpm install i-tofu@latest', 'cnpm install -g tofu-cli@latest']);
+} else if (program.yarn) {
+    execParallel(['yarn add i-tofu@latest', 'yarn global add tofu-cli@latest']);
+} else if (program.npm) {
+    execParallel(['npm install i-tofu@latest', 'npm install -g tofu-cli@latest']);
+} else {
+    execParallel([config.tool + ' install i-tofu@latest', config.tool + ' install -g tofu-cli@latest']);
+}

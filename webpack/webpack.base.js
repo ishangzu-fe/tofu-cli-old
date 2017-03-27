@@ -8,7 +8,7 @@ function resolve(dir) {
 
 function getAssetsPath(_path, config) {
     var assetsSubDirectory = config.assetsSubDirectory
-    return path.posix.join(assetsSubDirectory, _path)
+    return path.posix.join(cwd, assetsSubDirectory, _path)
 }
 
 module.exports = function (config) {

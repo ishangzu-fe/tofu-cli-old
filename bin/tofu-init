@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+require('../lib/check-version')();
+
 const program = require('commander');
 const chalk = require('chalk');
 const rm = require('rimraf');
@@ -138,7 +140,6 @@ const initConfig = async () => {
 }
 
 const init = async () => {
-    await checkVersion();
     config = await initConfig();
 
     // 如果存在文件夹，将会删除当前文件夹

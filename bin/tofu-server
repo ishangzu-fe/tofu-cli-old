@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 
+require('../lib/check-version')();
+
 const path = require('path');
 const ora = require('ora');
 const program = require('commander');
