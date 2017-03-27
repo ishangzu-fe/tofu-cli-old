@@ -1,7 +1,5 @@
 #!/usr/bin/env node
 
-require('../lib/check-version')();
-
 const program = require('commander');
 const chalk = require('chalk');
 const rm = require('rimraf');
@@ -156,4 +154,6 @@ const init = async () => {
     })
 }
 
-init();
+require('../lib/check-version')().then(res => {
+    init();
+});
