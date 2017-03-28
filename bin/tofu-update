@@ -1,11 +1,11 @@
 #! /usr/bin/env node
 
-// require('../lib/check-version')();
-
 const program = require('commander');
 const exec = require('child_process').exec;
+const execSync = require('child_process').execSync;
 const config = require('../config');
 const log = require('../lib/log').log;
+const logSuccess = require('../lib/log').logSuccess;
 const ora = require('ora');
 
 program
@@ -15,31 +15,22 @@ program
     .parse(process.argv);
 
 const execParallel = (commandArr) => {
-    const spinner_1 = new ora('正在升级i-tofu中...');
-    const spinner_2 = new ora('正在升级tofu-cli中...');
-    spinner_1.start();
+    const spinner = new ora('正在升级i-tofu...').start();
     log();
-    spinner_2.start();
+    execSync(commandArr[0]);
+    logSuccess('升级i-tofu成功');
 
-    exec(commandArr[0], (error, stdout, stderr) => {
-        spinner_1.stop();        
+    spinner.text = '正在升级tofu-cli...';
+    let child = exec(commandArr[1], (error, stdout, stderr) => {
         if (error) {
-            console.error(`exec error: ${error}`);
+            throw error;
             return;
         } else {
-            log('升级i-tofu成功！', 'green');
             log();
+            logSuccess('升级tofu-cli成功');
+            spinner.stop();
         }
     });
-    exec(commandArr[1], (error, stdout, stderr) => {
-        spinner_2.stop();
-        if (error) {
-            console.error(`exec error: ${error}`);
-            return;
-        } else {
-            log('升级tofu-cli成功！', 'green');
-        }
-    })
 }
 
 if (program.cnpm) {
