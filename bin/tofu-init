@@ -5,6 +5,7 @@ const chalk = require('chalk');
 const rm = require('rimraf');
 const log = require('../lib/log').log;
 const downloadFromGit = require('download-git-repo');
+// const ghdownload = require('github-download');
 const inquirer = require('inquirer');
 const ora = require('ora');
 const path = require('path');
@@ -16,6 +17,7 @@ const writeIgnore = require('../lib/write-ignore.js');
 let config; // 存放用户输入的配置
 
 program
+    // .option('-i, --intranet', '使用内网地址')
     .option('-g, --git', '初始化git')
     .parse(process.argv);
 
@@ -74,13 +76,25 @@ const download = (source, dist, clone) => {
     const spinner = ora('downloading template');
     spinner.start();
 
-    downloadFromGit(source, dist, { clone }, err => {
-        spinner.stop();
+    // if (program.intranet) {
+    //     ghdownload(source, dist)
+    //     .on('error', (err) => {
+    //         if (err) throw err;
+    //     })
+    //     .on('end', () => {
+    //         spinner.stop();
 
-        if (err) console.err(err);
+    //         afterDownload();
+    //     });
+    // } else {
+        downloadFromGit(source, dist, { clone }, err => {
+            spinner.stop();
 
-        afterDownload();
-    });
+            if (err) throw err;
+
+            afterDownload();
+        });
+    // }
 }
 
 const initConfig = async () => {
@@ -146,7 +160,11 @@ const init = async () => {
 
         switch (config.template) {
             case 'PC':
-                download('ishangzu-fe/tofu-boilerplate', config.pathName, false);
+                // if (program.intranet) {
+                //     download('git@192.168.0.192:ishangzu_web/tofu-boilerplate.git', config.pathName);
+                // } else {
+                    download('ishangzu-fe/tofu-boilerplate', config.pathName, false);
+                // }
                 break;
             default:
                 break;

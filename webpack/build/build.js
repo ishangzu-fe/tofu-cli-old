@@ -7,6 +7,7 @@ const rm = require('rimraf');
 const path = require('path');
 const chalk = require('chalk');
 const webpack = require('webpack');
+const log = require('../../lib/log').log;
 const config = require('./config');
 const webpackConfig = require('./webpack.prod');
 const zipPath = config.zipPath;
@@ -31,11 +32,7 @@ module.exports = (zip, to) => {
                 chunkModules: false
             }) + '\n\n')
 
-            console.log(chalk.cyan('  Build complete.\n'))
-            console.log(chalk.yellow(
-                '  Tip: built files are meant to be served over an HTTP server.\n' +
-                '  Opening index.html over file:// won\'t work.\n'
-            ))
+            log('  Build complete.', 'cyan');
         })
 
         // if (zip || to) {
