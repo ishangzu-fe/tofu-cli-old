@@ -11,10 +11,9 @@ const log = require('../../lib/log').log;
 const config = require('./config');
 const webpackConfig = require('./webpack.prod');
 const zipPath = config.zipPath;
-const compress = require('../lib/compress');
 
 module.exports = (zip, to) => {
-    var spinner = ora('building for production...')
+    var spinner = ora('构建打包中...')
     spinner.start()
 
     rm(path.join(config.assetsRoot, config.assetsSubDirectory), err => {
@@ -32,11 +31,12 @@ module.exports = (zip, to) => {
                 chunkModules: false
             }) + '\n\n')
 
-            log('  Build complete.', 'cyan');
+            log('  打包成功。', 'cyan');
+            
+            if (zip || to) {
+                require('../lib/compress')(zipPath, to);
+            }
         })
 
-        // if (zip || to) {
-        //     compress(zipPath, to);
-        // }
     })
 }

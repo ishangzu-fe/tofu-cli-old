@@ -2,8 +2,10 @@ const fs = require('fs');
 const path = require('path');
 const cp = require('child_process');
 const archiver = require('archiver');
+const log = require('../../lib/log').log;
+const logSuccess = require('../../lib/log').logSuccess;
 
-const output = fs.createWriteStream(path.resolve(__dirname, '..', 'dist.zip'));
+const output = fs.createWriteStream(path.resolve(process.cwd(), 'dist.zip'));
 const archive = archiver('zip', {
     zlib: {
         level: 0 // 压缩等级 1-9
@@ -17,17 +19,18 @@ archive.on('error', function (err) {
 archive.pipe(output);
 
 module.exports = (zipPath, to) => {
+
     output.on('close', function () {
-        console.log(archive.pointer() + ' total bytes');
-        console.log('archiver has been finalized and the output file descriptor has closed.');
+        log();
+        logSuccess('已经将压缩好的文件放置在当前文件夹');
 
         // 将压缩好的zip文件移动到指定的路径
-        zipPath = to || zipPath;
+        zipPath = (typeof to === 'string') ? to : zipPath;
         if (zipPath) {
-            cp.exec('mv dist.zip ' + path.relative(path.resolve(__dirname, '..'), zipPath), (err) => {
-                if (err) console.error(err)
+            cp.exec('mv dist.zip ' + path.relative(process.cwd(), zipPath), (err) => {
+                if (err) throw err;
                 else {
-                    console.log('请在' + zipPath + '查看zip文件')
+                    logSuccess('已经将压缩好的文件移动到指定位置，请在' + zipPath + '查看文件');
                 }
             })
         }

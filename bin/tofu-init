@@ -13,6 +13,7 @@ const fs = require('fs');
 const cp = require('child_process');
 const checkVersion = require('../lib/check-version');
 const writeIgnore = require('../lib/write-ignore.js');
+const writeLog = require('../lib/write-logo.js');
 
 let config; // 存放用户输入的配置
 
@@ -25,23 +26,23 @@ program
  * 初始化git
  */
 const initGit = () => {
-    cp.exec('git init', {
-        cwd: dist
-    }, (err, stdout, stderr) => {
-        console.log(`在${dist}初始化git项目成功！`)
-        cp.execSync(`git add remote origin ${config.gitPath}`);
-        cp.execSync(`git push -u origin master`);
+    cp.execSync('git init', {
+        cwd: config.pathName
     })
+    cp.execSync(`git remote add origin ${config.gitPath}`, {
+        cwd: config.pathName
+    });
 }
 
 /**
  * 下载之后做的事情
  * @param {String} dist 项目目录
  */
-const afterDownload = async () => {
+const afterDownload = () => {
     writeIgnore(config.pathName);
+    writeLog(config.pathName, config.name);
     if (program.git) {
-        await initGit();
+        initGit();
     }
 
     let i = 1;

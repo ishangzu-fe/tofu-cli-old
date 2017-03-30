@@ -2,16 +2,37 @@ const path = require('path');
 const cwd = process.cwd();
 const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
-function resolve(dir) {
+const resolve = (dir) => {
     return path.posix.join(cwd, dir)
 }
 
-function getAssetsPath(_path, config) {
+const getAssetsPath = (_path, config) => {
     var assetsSubDirectory = config.assetsSubDirectory
     return path.posix.join(cwd, assetsSubDirectory, _path)
 }
 
+const getCssLoaders = (env, inVue) => {
+    let styleLoader = inVue ? 'vue-style-loader' : 'style-loader'
+
+    if (env === 'production') {
+        return ExtractTextPlugin.extract({
+                    fallback: styleLoader,
+                    use: ['css-loader', 'sass-loader']
+                })
+    } else {
+        let loaders = [styleLoader, 'css-loader', 'sass-loader']
+        if (inVue) {
+            return loaders.join('!')
+        } else {
+            return loaders
+        } 
+    }
+}
+
 module.exports = function (config) {
+    const env = JSON.parse(config.env.NODE_ENV)
+    console.log(env)
+
     return {
         entry: {
             app: resolve('src/main.js'),
@@ -36,29 +57,31 @@ module.exports = function (config) {
         },
         module: {
             rules: [{
+                    test: /\.(vue)$/,
+                    enforce: 'pre',
+                    loader: 'eslint-loader',
+                    include: [resolve('src')],
+                    options: {
+                        formatter: require("eslint-friendly-formatter")
+                    }
+                },
+                {
                     test: /\.vue$/,
                     loader: 'vue-loader',
                     options: {
                         loaders: {
-                            scss: 'style-loader!css-loader!sass-loader'
+                            scss: getCssLoaders(env, true)
                         }
                     }
                 },
-                // {
-                //   test: /\.(css|scss)$/,
-                //   use: ExtractTextPlugin.extract({
-                //       fallback: 'style-loader',
-                //       use: ['css-loader', 'sass-loader'] 
-                //   })
-                // },
                 {
                     test: /\.(css|scss)$/,
-                    use: ['style-loader', 'css-loader', 'sass-loader']
+                    use: getCssLoaders(env)
                 },
                 {
                     test: /\.js(x)*$/,
                     loader: 'babel-loader',
-                    include: [resolve('node_modules/i-tofu'), resolve('src')]
+                    exclude: /node_modules/
                 },
                 {
                     test: /\.html$/,
@@ -84,4 +107,3 @@ module.exports = function (config) {
         }
     }
 }
-
