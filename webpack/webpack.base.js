@@ -43,7 +43,7 @@ module.exports = function (config) {
         },
         resolve: {
             extensions: ['.js', '.vue', '.json'],
-            alias: {
+            alias: Object.assign({
                 'vue$': 'vue/dist/vue.common.js',
                 '@': resolve('src'),
                 'http$': resolve('lib/services.js'),
@@ -52,7 +52,7 @@ module.exports = function (config) {
                 'views': resolve('src/views'),
                 'portal': resolve('src/views/portal'),
                 'service': resolve('src/service')
-            }
+            }, config.alias)
         },
         module: {
             rules: [{

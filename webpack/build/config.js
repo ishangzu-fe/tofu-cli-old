@@ -11,5 +11,6 @@ module.exports = {
     productionSourceMap: true,
     productionGzipExtensions: ['js', 'css'],
     bundleAnalyzerReport: process.env.npm_config_report,
-    zipPath: config.zipPath
+    zipPath: config.zipPath,
+    alias: config.alias
 }

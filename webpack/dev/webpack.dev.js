@@ -1,9 +1,9 @@
-const webpack = require('webpack');
-const config = require('./config');
-const merge = require('webpack-merge');
-const baseWebpackConfig = require('../webpack.base')(config);
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin');
+const webpack = require('webpack')
+const config = require('./config')
+const merge = require('webpack-merge')
+const baseWebpackConfig = require('../webpack.base')(config)
+const HtmlWebpackPlugin = require('html-webpack-plugin')
+const FriendlyErrorsPlugin = require('friendly-errors-webpack-plugin')
 
 const hotReload = require('path').resolve(__dirname, './hot-reload')
 
