@@ -1,44 +1,102 @@
 #! /usr/bin/env node
 
-const program = require('commander');
-const exec = require('child_process').exec;
-const execSync = require('child_process').execSync;
-const config = require('../config');
-const log = require('../lib/log').log;
-const logSuccess = require('../lib/log').logSuccess;
-const ora = require('ora');
+const program = require('commander')
+const exec = require('child_process').exec
+const execSync = require('child_process').execSync
+const config = require('../config')
+const log = require('../lib/log').log
+const logSuccess = require('../lib/log').logSuccess
+const ora = require('ora')
+const downloadFromGit = require('download-git-repo')
+const copy = require('../lib/copy')
+const resolveCwd = require('../lib/utils').resolveCwd
+const fs = require('fs')
+const rm = require('rimraf')
 
 program
+    .option('-t, --template', '仅更新模板')
     .option('--cnpm', '使用cnpm来代替npm')
     .option('--yarn', '使用yarn来代替npm')
     .option('--npm', '使用npm来代替设置的工具')
-    .parse(process.argv);
+    .parse(process.argv)
 
-const execParallel = (commandArr) => {
-    const spinner = new ora('正在升级i-tofu...').start();
-    log();
-    execSync(commandArr[0]);
-    logSuccess('升级i-tofu成功');
+/**
+ * 更新模板
+ */
+const updateBoilerplate = () => {
+    return new Promise((resolve, reject) => {
+        downloadFromGit('ishangzu-fe/tofu-boilerplate', resolveCwd('temp'), { clone: false }, err => {
+            if (err) throw err
 
-    spinner.text = '正在升级tofu-cli...';
+            copyAndRemove();
+        })
+
+        async function copyAndRemove (files) {
+            let arr = []
+            
+            let msgArr_1 = await copy(resolveCwd('temp/' + 'src/views/portal'), resolveCwd('src/views/portal'))
+            let msgArr_2 = await copy(resolveCwd('temp/' + 'src/main.js'), resolveCwd('src/main.js'))
+            let msgArr_3 = await copy(resolveCwd('temp/' + 'src/main.scss'), resolveCwd('src/main.scss'))
+            let msgArr_4 = await copy(resolveCwd('temp/' + '.gitignore'), resolveCwd('.gitignore'))
+
+            arr = arr.concat(msgArr_1, msgArr_2, msgArr_3, msgArr_4)
+            rm(resolveCwd('temp'), err => {
+                if (err) throw err
+
+                resolve(arr)
+            })
+        }
+    })
+}
+
+/**
+ * 执行多个命令
+ * @param commandArr 
+ */
+const execParallel = async (commandArr) => {
+    const spinner_1 = new ora('正在升级tofu-boilerplate...').start()
+    const msgs = await updateBoilerplate();
+    log()
+    log('更新了以下文件', 'green')
+    msgs.forEach(msg => {
+        logSuccess(msg)
+    })
+    spinner_1.stop()
+
+    log()
+    const spinner_2 = new ora('正在升级i-tofu...').start()
+    log()
+    execSync(commandArr[0])
+
+    spinner_2.text = '正在升级tofu-cli...'
     let child = exec(commandArr[1], (error, stdout, stderr) => {
         if (error) {
-            throw error;
-            return;
+            throw error
+            return
         } else {
-            log();
-            logSuccess('升级tofu-cli成功');
-            spinner.stop();
+            log()
+            logSuccess('升级tofu-boilerplate成功')
+            logSuccess('升级i-tofu成功')
+            logSuccess('升级tofu-cli成功')
+            spinner_2.stop()
         }
-    });
+    })
+    child.stdout.on('data', msg => {
+        log(msg, 'yellow')
+    })
+}
+
+if (program.template) {
+    updateBoilerplate()
+    return
 }
 
 if (program.cnpm) {
-    execParallel(['cnpm install i-tofu@latest', 'cnpm install -g tofu-cli@latest']);
+    execParallel(['cnpm install i-tofu@latest', 'cnpm install -g tofu-cli@latest'])
 } else if (program.yarn) {
-    execParallel(['yarn add i-tofu@latest', 'yarn global add tofu-cli@latest']);
+    execParallel(['yarn add i-tofu@latest', 'yarn global add tofu-cli@latest'])
 } else if (program.npm) {
-    execParallel(['npm install i-tofu@latest', 'npm install -g tofu-cli@latest']);
+    execParallel(['npm install i-tofu@latest', 'npm install -g tofu-cli@latest'])
 } else {
-    execParallel([config.tool + ' install i-tofu@latest', config.tool + ' install -g tofu-cli@latest']);
+    execParallel([config.tool + ' install i-tofu@latest', config.tool + ' install -g tofu-cli@latest'])
 }

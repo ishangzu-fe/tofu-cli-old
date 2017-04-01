@@ -31,7 +31,6 @@ const getCssLoaders = (env, inVue) => {
 
 module.exports = function (config) {
     const env = JSON.parse(config.env.NODE_ENV)
-    console.log(env)
 
     return {
         entry: {
