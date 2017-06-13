@@ -36,7 +36,11 @@ const webpackConfig = merge(baseWebpackConfig, {
         new ExtractTextPlugin({
           filename: getAssetsPath('css/[name].css')
         }),
-        new OptimizeCSSPlugin(),
+        new OptimizeCSSPlugin({
+            cssProcessorOptions: {
+                safe: true
+            }
+        }),
         new HtmlWebpackPlugin({
             filename: config.index,
             template: 'index.html',
